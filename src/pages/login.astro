@@ -1,0 +1,12 @@
+---
+import LoginForm from "@/components/LoginForm";
+import RootLayout from "@/layouts/RootLayout.astro";
+
+const { authSession } = Astro.locals;
+---
+
+<RootLayout title="Login">
+  <div class="max-w-lg mx-auto">
+    <LoginForm initialAuthSession={authSession} client:load />
+  </div>
+</RootLayout>

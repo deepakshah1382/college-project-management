@@ -1,0 +1,12 @@
+---
+import RootLayout from "@/layouts/RootLayout.astro";
+import AccountProfile from "@/components/AccountProfile";
+
+const { authSession } = Astro.locals;
+---
+
+<RootLayout title="Profile">
+  <div class="max-w-2xl mx-auto">
+    <AccountProfile initialAuthSession={authSession} client:load />
+  </div>
+</RootLayout>

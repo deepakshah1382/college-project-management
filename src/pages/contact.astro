@@ -1,0 +1,12 @@
+---
+import RootLayout from "@/layouts/RootLayout.astro";
+import ContactForm from "@/components/ContactForm";
+
+const { authSession } = Astro.locals;
+---
+
+<RootLayout title="Contact us">
+  <div class="max-w-2xl mx-auto">
+    <ContactForm intialAuthSession={authSession} client:load />
+  </div>
+</RootLayout>

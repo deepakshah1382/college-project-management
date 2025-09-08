@@ -1,0 +1,12 @@
+---
+import RegisterForm from "@/components/RegisterForm";
+import RootLayout from "@/layouts/RootLayout.astro";
+
+const { authSession } = Astro.locals;
+---
+
+<RootLayout title="Register">
+  <div class="max-w-lg mx-auto">
+    <RegisterForm initialAuthSession={authSession} client:load />
+  </div>
+</RootLayout>

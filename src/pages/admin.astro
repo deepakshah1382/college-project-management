@@ -1,0 +1,18 @@
+---
+import RootLayout from "@/layouts/RootLayout.astro";
+import AdminPage from "@/components/AdminPage";
+
+const { authSession } = Astro.locals;
+
+if (!authSession) {
+  Astro.response.status = 401;
+  Astro.response.statusText = "Unauthorized";
+} else if (authSession.user.role !== "admin") {
+  Astro.response.status = 403;
+  Astro.response.statusText = "Unauthorized";
+}
+---
+
+<RootLayout title="Admin Panel">
+  <AdminPage initialAuthSession={authSession} client:load />
+</RootLayout>

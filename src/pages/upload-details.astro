@@ -1,0 +1,12 @@
+---
+import RootLayout from "@/layouts/RootLayout.astro";
+import UploadDetailsPage from "@/components/UploadDetailsPage";
+
+const { authSession } = Astro.locals;
+---
+
+<RootLayout title="Upload details">
+  <div class="max-w-2xl mx-auto">
+    <UploadDetailsPage initialAuthSession={authSession} client:load />
+  </div>
+</RootLayout>

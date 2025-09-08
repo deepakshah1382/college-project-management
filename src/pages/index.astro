@@ -1,0 +1,16 @@
+---
+import RootLayout from "@/layouts/RootLayout.astro";
+import { auth } from "@/server/auth";
+import { AArrowDownIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+export const prerender = false;
+
+const { authSession } = Astro.locals;
+---
+
+<RootLayout>
+  <AArrowDownIcon />
+  <Button>Submit</Button>
+  <p>Hii, {authSession?.user.name ?? "Unknown"}</p>
+</RootLayout>
