@@ -1,0 +1,47 @@
+---
+import NavigationBar from "./NavigationBar";
+import HeaderAccount from "@/components/HeaderAccount";
+
+const { authSession } = Astro.locals;
+---
+
+<header
+  class="sticky top-0 px-5 py-2 bg-blue-950 text-white z-50 border-b border-gray-300"
+>
+  <div class="flex justify-between items-center gap-2 max-w-5xl mx-auto">
+    <a class="flex items-center gap-2" href="/">
+      <img
+        class="size-11 object-cover object-center rounded-md"
+        src="/favicon.png"
+        alt="R.K. Desai Group of Colleges"
+      />
+      <h1>
+        <span class="font-semibold text-lg">R.K. Desai</span>
+        <span class="block text-sm">Group of Colleges</span>
+      </h1>
+    </a>
+    <div class="flex gap-2.5 md:gap-5">
+      <NavigationBar
+        menuItems={[
+          {
+            name: "Upcoming companies",
+            href: "/upcoming-companies",
+            id: "upcoming_companies_item",
+          },
+          {
+            name: "Placed students",
+            href: "/placed-students",
+            id: "placed_stduents_item",
+          },
+          {
+            name: "Contact",
+            href: "/contact",
+            id: "contact_item",
+          },
+        ]}
+        client:load
+      />
+      <HeaderAccount initialAuthSession={authSession} client:load />
+    </div>
+  </div>
+</header>

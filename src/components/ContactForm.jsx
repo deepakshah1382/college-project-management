@@ -66,10 +66,11 @@ export default function ContactForm({ intialAuthSession }) {
       .then(async (res) => {
         const data = await res.json();
 
-        if (res.status === 200) {
+        if (res.ok && data.success) {
+          formRef.current.reset();
           toast.success(data.message);
         } else if ("error" in data) {
-          toast.error(data.message);
+          toast.error(data.error);
         }
       })
       .finally(() => {

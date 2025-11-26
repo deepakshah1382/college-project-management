@@ -1,18 +1,30 @@
 ---
+// @ts-nocheck
 import RootLayout from "@/layouts/RootLayout.astro";
 import AdminPage from "@/components/AdminPage";
+import { getPlacementRequests } from "@/server/utils/placement-details";
 
 const { authSession } = Astro.locals;
 
-if (!authSession) {
+let placementRequests = [];
+
+if (authSession) {
+  if (authSession.user.role === "admin") {
+    placementRequests = await getPlacementRequests();
+  } else {
+    Astro.response.status = 403;
+    Astro.response.statusText = "Unauthorized";
+  }
+} else {
   Astro.response.status = 401;
-  Astro.response.statusText = "Unauthorized";
-} else if (authSession.user.role !== "admin") {
-  Astro.response.status = 403;
   Astro.response.statusText = "Unauthorized";
 }
 ---
 
 <RootLayout title="Admin Panel">
-  <AdminPage initialAuthSession={authSession} client:load />
+  <AdminPage
+    initialAuthSession={authSession}
+    initialPlacementRequests={placementRequests}
+    client:load
+  />
 </RootLayout>

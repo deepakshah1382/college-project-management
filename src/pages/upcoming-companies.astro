@@ -1,5 +1,67 @@
 ---
+import Heading from "@/components/Heading";
 import RootLayout from "@/layouts/RootLayout.astro";
+import { formatUTCDate } from "@/server/utils/formate-date";
+import { getUpcomingCompanies } from "@/server/utils/placement-details";
+import {
+  BuildingIcon,
+  CalendarIcon,
+  GraduationCapIcon,
+  MapPinIcon,
+} from "lucide-react";
+
+const upcomingCompanies = await getUpcomingCompanies();
 ---
 
-<RootLayout title="Upcoming Companies"> Hello </RootLayout>
+<RootLayout title="Upcoming Companies" class="flex flex-col gap-5">
+  <Heading
+    title="Upcoming Companies"
+    description="List of upcoming companies"
+  />
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+    {
+      upcomingCompanies.map(
+        ({
+          name,
+          date,
+          location,
+          requirements,
+          salary: [startSalary, endSalary],
+        }) => (
+          <div class="grid grid-cols-2 gap-2 p-3 border rounded-md bg-blue-200">
+            {[
+              {
+                title: "Name",
+                icon: BuildingIcon,
+                value: name,
+              },
+              {
+                title: "Date",
+                icon: CalendarIcon,
+                value: `${formatUTCDate(date)} UTC`,
+              },
+              {
+                title: "Location",
+                icon: MapPinIcon,
+                value: location,
+              },
+              {
+                title: "Skills",
+                icon: GraduationCapIcon,
+                value: requirements,
+              },
+            ].map(({ title, icon: Icon, value }) => (
+              <div class="flex flex-col bg-blue-950 p-2.5 border rounded-md text-white">
+                <div class="text-sm opacity-90 flex gap-2 items-center">
+                  <Icon className="shrink-0" size={14} />
+                  <span>{title}</span>
+                </div>
+                <div class="break-words">{value}</div>
+              </div>
+            ))}
+          </div>
+        )
+      )
+    }
+  </div>
+</RootLayout>

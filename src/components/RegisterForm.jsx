@@ -66,10 +66,12 @@ export default function RegisterForm({ initialAuthSession }) {
   return authSession ? (
     <LoggedInCard authSession={authSession} />
   ) : (
-    <Card>
+    <Card className="bg-blue-200">
       <CardHeader>
-        <CardTitle>Register for an account</CardTitle>
-        <CardDescription>Create an account using your email</CardDescription>
+        <CardTitle className="text-blue-950">Register for an account</CardTitle>
+        <CardDescription className="text-black">
+          Create an account using your email
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form
@@ -81,6 +83,7 @@ export default function RegisterForm({ initialAuthSession }) {
             <div className="grid gap-2">
               <Label htmlFor={`${formIdPrefix}_name`}>Name</Label>
               <Input
+                className="bg-white"
                 id={`${formIdPrefix}_name`}
                 type="text"
                 name="name"
@@ -91,6 +94,7 @@ export default function RegisterForm({ initialAuthSession }) {
             <div className="grid gap-2">
               <Label htmlFor={`${formIdPrefix}_email`}>Email</Label>
               <Input
+                className="bg-white"
                 id={`${formIdPrefix}_email`}
                 type="email"
                 name="email"
@@ -101,6 +105,7 @@ export default function RegisterForm({ initialAuthSession }) {
             <div className="grid gap-2">
               <Label htmlFor={`${formIdPrefix}_password`}>Password</Label>
               <Input
+                className="bg-white"
                 id={`${formIdPrefix}_password`}
                 type="password"
                 name="password"

@@ -23,18 +23,20 @@ export default function LoggedInCard({ authSession }) {
   };
 
   return (
-    <Card>
+    <Card className="bg-blue-200">
       <CardHeader>
-        <CardTitle>You are logged in</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-shadow-blue-50">You are logged in</CardTitle>
+        <CardDescription className="text-black">
           You are already logged in, logout to register
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col">
-        <div className="">{authSession.user.name}</div>
-        <div className="text-sm opacity-80">{authSession.user.email}</div>
+        <div className="text-blue-950 ">{authSession.user.name}</div>
+        <div className="text-sm opacity-80 text-black">
+          {authSession.user.email}
+        </div>
         {!authSession.user.emailVerified && (
-          <div className="text-sm mt-4">
+          <div className="text-sm mt-4 text-black ">
             Your email is not verified, verify it from{" "}
             <a className="underline" href="/profile">
               Profile page

@@ -16,7 +16,7 @@ export const auth = betterAuth({
       async sendVerificationOTP({ email, otp, type }) {
         if (type === "email-verification") {
           await transporter.sendMail({
-            from: `"College Project" <${process.env.NODEMAILER_USER}>`,
+            from: `"College Project" <${import.meta.env.NODEMAILER_USER}>`,
             to: email,
             subject: "Email verfication",
             text: `Verify your email with this otp: ${otp}. Don't share it with anyone.`,

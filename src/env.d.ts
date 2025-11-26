@@ -1,22 +1,26 @@
 /// <reference types="astro/client"/>
 
-import type { User, Session } from "better-auth";
 import type { auth } from "@/server/auth";
 
 declare global {
-  declare namespace App {
+  namespace App {
     interface Locals {
-      authSession: typeof auth.$Infer.Session;
+      authSession: typeof auth.$Infer.Session | null;
     }
   }
 
-  declare namespace NodeJS {
-    interface ProcessEnv
-      extends Readonly<{
-        NODEMAILER_USER: string;
-        NODEMAILER_PASS: string;
-        BETTER_AUTH_SECRET: string;
-        CONTACT_FORM_ADMIN_EMAIL: string;
-      }> {}
+  namespace NodeJS {
+    interface ProcessEnv {
+      readonly NODEMAILER_USER: string;
+      readonly NODEMAILER_PASS: string;
+      readonly BETTER_AUTH_SECRET: string;
+      readonly ADMIN_EMAIL: string;
+    }
+  }
+
+  interface ImportMetaEnv extends NodeJS.ProcessEnv {}
+
+  interface ImportMeta {
+    readonly env: ImportMetaEnv;
   }
 }

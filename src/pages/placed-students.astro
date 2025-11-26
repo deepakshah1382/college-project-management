@@ -1,0 +1,20 @@
+---
+import RootLayout from "@/layouts/RootLayout.astro";
+import { getPlacedStudents } from "@/server/utils/placement-details";
+import PlacedStudentsComponent from "@/components/PlacedStudents";
+import Heading from "@/components/Heading";
+import { Separator } from "@/components/ui/separator";
+
+const placedStudents = await getPlacedStudents();
+---
+
+<RootLayout title="Placed Students">
+  <div class="flex flex-col gap-5">
+    <Heading
+      title="Placed Students"
+      description="List of all placed students"
+    />
+    <Separator />
+    <PlacedStudentsComponent placedStudents={placedStudents} client:load />
+  </div>
+</RootLayout>

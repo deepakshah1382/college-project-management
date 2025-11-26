@@ -1,12 +1,18 @@
 ---
 import RootLayout from "@/layouts/RootLayout.astro";
 import AccountProfile from "@/components/AccountProfile";
+import { getPlacementRequestsByUserId } from "@/server/utils/placement-details";
 
 const { authSession } = Astro.locals;
+const initialPlacementRequests = authSession
+  ? await getPlacementRequestsByUserId(authSession.user.id)
+  : [];
 ---
 
 <RootLayout title="Profile">
-  <div class="max-w-2xl mx-auto">
-    <AccountProfile initialAuthSession={authSession} client:load />
-  </div>
+  <AccountProfile
+    initialAuthSession={authSession}
+    initialPlacementRequests={initialPlacementRequests}
+    client:load
+  />
 </RootLayout>

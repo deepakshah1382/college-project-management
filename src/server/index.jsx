@@ -1,20 +1,28 @@
 import { Hono } from "hono";
 import { auth } from "./auth";
 import { zValidator } from "@hono/zod-validator";
-import { success, z } from "zod";
+import { z } from "zod";
 import isEmail from "validator/lib/isEmail";
 import { fromError } from "zod-validation-error";
 import { transporter } from "./emails";
 import { render } from "@react-email/components";
 import ContactFormSubmission from "./emails/ContactFormSubmission";
 import ContactFormConfirmation from "./emails/ContactFormConfirmation";
-import { db, placementProfileBucket } from "./db";
+import NewPlacementRequestNotification from "./emails/NewPlacementRequestNotification";
 import { ObjectId } from "mongodb";
-import { Readable } from "node:stream";
 import {
+  getPlacedStudentProfile,
+  getPlacedStudents,
   getPlacementRequestById,
   getPlacementRequestByIdAndUserId,
+  getPlacementRequestProfileById,
+  getPlacementRequestProfileByIdAndUserId,
+  getPlacementRequests,
   getPlacementRequestsByUserId,
+  getUpcomingCompanies,
+  insertPlacementRequest,
+  insertUpcomingCompany,
+  patchPlacementRequestById,
 } from "./utils/placement-details";
 
 const ContactFormJsonSchema = z
@@ -29,7 +37,7 @@ const ContactFormJsonSchema = z
 
 const UploadPlacementDetailsFormSchema = z
   .object({
-    name: z.string().min(3),
+    name: z.string().trim().min(3).max(150),
     email: z
       .string()
       .refine((value) => isEmail(value), { error: "Not a valid email" }),
@@ -38,9 +46,55 @@ const UploadPlacementDetailsFormSchema = z
       .refine((value) => value.size <= 5 * 1024 * 1024, {
         error: "File size should not exceed 5MB",
       }),
-    company: z.string().min(3),
+    stream: z.enum([
+      "bca",
+      "bsc",
+      "msc",
+      "bcom",
+      "mcom",
+      "bba",
+      "bed",
+      "ba",
+      "MBA",
+    ]),
+    company: z.string().trim().min(3).max(100),
+    designation: z.string().trim().min(3).max(100),
     package: z.coerce.number().positive(),
-    summary: z.string().min(100),
+    summary: z.string().trim().min(100).max(1500),
+    joinedAt: z.coerce
+      .number()
+      .positive()
+      .refine((epoch) => new Date().getTime() >= epoch, {
+        error: "Date is not valid as it is in future",
+      })
+      .transform((epoch) => new Date(epoch)),
+  })
+  .strict();
+
+const PatchPlacementRequestStatusSchema = z
+  .object({
+    status: z.enum(["pending", "approved", "declined"]),
+  })
+  .strict();
+
+const AddCompanySchema = z
+  .object({
+    name: z.string().min(3).max(100),
+    date: z
+      .number()
+      .positive()
+      .refine((epoch) => new Date().getTime() <= epoch, {
+        error: "Date is not valid as it is in past",
+      })
+      .transform((epoch) => new Date(epoch)),
+    location: z.string().min(3).max(1000),
+    requirements: z.string().min(3).max(1000),
+    salary: z
+      .array(z.number().positive())
+      .length(2)
+      .refine(([starting, ending]) => ending > starting, {
+        error: "Ending salary must be greater than starting salary",
+      }),
   })
   .strict();
 
@@ -50,8 +104,8 @@ async function userAuthorizedMiddleware(c, next) {
   if (!authSession) {
     return c.json(
       {
-        error: "UNAUTHORIZED",
-        message: "Unauthorized! Login and retry again!",
+        code: "UNAUTHORIZED",
+        error: "Unauthorized! Login and retry again!",
       },
       {
         status: 401,
@@ -62,31 +116,51 @@ async function userAuthorizedMiddleware(c, next) {
   await next();
 }
 
+async function adminAuthorizedMiddleware(c, next) {
+  const { authSession } = c.env.locals;
+
+  if (authSession.user.role !== "admin") {
+    return c.json(
+      {
+        code: "UNAUTHORIZED",
+        error: "You don't have rights to peform this action.",
+      },
+      {
+        status: 403,
+      }
+    );
+  }
+
+  await next();
+}
+
+function handleInvalidSchema(result, c) {
+  if (!result.success) {
+    const validationError = fromError(result.error);
+    return c.json(
+      {
+        code: "INVALID_DATA",
+        error: validationError.toString(),
+      },
+      { status: 400 }
+    );
+  }
+}
+
 const app = new Hono({
   strict: false,
 })
   .all("/api/auth/*", async (c) => auth.handler(c.req.raw))
   .post(
     "/api/contact",
-    zValidator("json", ContactFormJsonSchema, (result, c) => {
-      if (!result.success) {
-        const validationError = fromError(result.error);
-        return c.json(
-          {
-            error: "INVALID_DATA",
-            message: validationError.toString(),
-          },
-          { status: 400 }
-        );
-      }
-    }),
+    zValidator("json", ContactFormJsonSchema, handleInvalidSchema),
     async (c, next) => {
       const { name, email, message } = c.req.valid("json");
 
       try {
         await transporter.sendMail({
-          from: `"College Project" <${process.env.NODEMAILER_USER}>`,
-          to: process.env.CONTACT_FORM_ADMIN_EMAIL,
+          from: `"College Project" <${import.meta.env.NODEMAILER_USER}>`,
+          to: import.meta.env.ADMIN_EMAIL,
           replyTo: email,
           subject: "New Contact Form Submission",
           html: await render(
@@ -102,8 +176,8 @@ const app = new Hono({
 
         return c.json(
           {
-            error: "INTERNAL_SERVER_ERROR",
-            message: "An unexpected error occurred",
+            code: "INTERNAL_SERVER_ERROR",
+            error: "An unexpected error occurred",
           },
           {
             status: 500,
@@ -113,7 +187,7 @@ const app = new Hono({
 
       try {
         await transporter.sendMail({
-          from: `"College Project" <${process.env.NODEMAILER_USER}>`,
+          from: `"College Project" <${import.meta.env.NODEMAILER_USER}>`,
           to: email,
           subject: "Contact form submitted",
           html: await render(<ContactFormConfirmation name={name} />),
@@ -129,64 +203,62 @@ const app = new Hono({
   .post(
     "/api/placement-details",
     userAuthorizedMiddleware,
-    zValidator("form", UploadPlacementDetailsFormSchema, (result, c) => {
-      if (!result.success) {
-        const validationError = fromError(result.error);
-        return c.json(
-          {
-            error: "INVALID_DATA",
-            message: validationError.toString(),
-          },
-          { status: 400 }
-        );
-      }
-    }),
+    zValidator("form", UploadPlacementDetailsFormSchema, handleInvalidSchema),
     async (c) => {
       const { authSession } = c.env.locals;
       const {
         name,
         email,
         profile,
+        stream,
         company,
+        designation,
         package: packageValue,
         summary,
+        joinedAt,
       } = c.req.valid("form");
 
+      const placementData = {
+        name,
+        email,
+        profile,
+        stream,
+        company,
+        designation,
+        package: packageValue,
+        summary,
+        joinedAt,
+        userId: authSession.user.id,
+      };
+
       try {
-        const stream = Readable.fromWeb(profile.stream());
-        const uploadStream = placementProfileBucket.openUploadStream(
-          profile.name
-        );
-        stream.pipe(uploadStream);
-
-        await new Promise((resolve, reject) => {
-          uploadStream.once("finish", resolve);
-          uploadStream.once("error", reject);
-        });
-
-        await db.collection("placement_request").insertOne({
-          name,
-          email,
-          profile: new ObjectId(uploadStream.id),
-          company,
-          package: packageValue,
-          summary,
-          user: new ObjectId(authSession.user.id),
-          createdAt: new Date(),
-          status: "pending",
-        });
+        await insertPlacementRequest(placementData);
       } catch (e) {
         console.error(e);
 
         return c.json(
           {
-            error: "INTERNAL_SERVER_ERROR",
-            message: "An unexpected error occurred. Try again later.",
+            code: "INTERNAL_SERVER_ERROR",
+            error: "An unexpected error occurred. Try again later.",
           },
           {
             status: 500,
           }
         );
+      }
+
+      try {
+        await transporter.sendMail({
+          from: `"College Project" <${import.meta.env.NODEMAILER_USER}>`,
+          to: import.meta.env.ADMIN_EMAIL,
+          replyTo: email,
+          subject: "New Placement Request",
+          html: await render(
+            <NewPlacementRequestNotification data={placementData} />
+          ),
+        });
+      } catch (e) {
+        console.warn(e);
       }
 
       return c.json({
@@ -199,20 +271,12 @@ const app = new Hono({
   .get("/api/placement-details", userAuthorizedMiddleware, async (c) => {
     const { authSession } = c.env.locals;
 
-    const requests = await getPlacementRequestsByUserId(authSession.user.id);
+    const requests =
+      authSession.user.role === "admin" && c.req.query("admin") !== "false"
+        ? await getPlacementRequests()
+        : await getPlacementRequestsByUserId(authSession.user.id);
 
-    console.log(requests[0]._id.toString());
-
-    const firstRequest = await getPlacementRequestById(
-      requests[0]._id.toString()
-    );
-
-    console.log(firstRequest);
-
-    return c.json({
-      success: true,
-      data: requests,
-    });
+    return c.json({ details: requests });
   })
   .get("/api/placement-details/:id", userAuthorizedMiddleware, async (c) => {
     const { authSession } = c.env.locals;
@@ -222,8 +286,8 @@ const app = new Hono({
     if (!ObjectId.isValid(requestId)) {
       return c.json(
         {
-          error: "INVALID_REQUEST_ID",
-          message: "Request Id is not valid",
+          code: "INVALID_REQUEST_ID",
+          error: "Request Id is not valid",
         },
         {
           status: 400,
@@ -231,15 +295,189 @@ const app = new Hono({
       );
     }
 
-    const request = await getPlacementRequestByIdAndUserId(
-      requestId,
-      authSession.user.id
-    );
+    const request =
+      authSession.user.role === "admin" && c.req.query("admin") !== "false"
+        ? await getPlacementRequestById(requestId)
+        : await getPlacementRequestByIdAndUserId(
+            requestId,
+            authSession.user.id
+          );
 
     return c.json({
-      success: true,
-      data: request,
+      detail: request,
     });
+  })
+  .patch(
+    "/api/placement-details/:id",
+    userAuthorizedMiddleware,
+    adminAuthorizedMiddleware,
+    zValidator("json", PatchPlacementRequestStatusSchema, handleInvalidSchema),
+    async (c) => {
+      const { status } = c.req.valid("json");
+      const id = c.req.param("id");
+
+      try {
+        const updated = await patchPlacementRequestById(id, { status });
+
+        return c.json({
+          success: updated,
+        });
+      } catch (e) {
+        console.warn(e);
+
+        return c.json(
+          {
+            success: false,
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+    }
+  )
+  .get(
+    "/api/placement-details/:id/profile",
+    userAuthorizedMiddleware,
+    async (c) => {
+      const { authSession } = c.env.locals;
+
+      const requestId = c.req.param("id");
+
+      if (!ObjectId.isValid(requestId)) {
+        return c.json(
+          {
+            code: "INVALID_REQUEST_ID",
+            error: "Request Id is not valid",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+      const fileData =
+        authSession.user.role === "admin"
+          ? await getPlacementRequestProfileById(requestId)
+          : await getPlacementRequestProfileByIdAndUserId(
+              requestId,
+              authSession.user.id
+            );
+
+      if (fileData) {
+        return c.body(fileData.stream, 200, {
+          "Content-Type": fileData.metadata.contentType,
+        });
+      }
+
+      return c.json(
+        {
+          code: "PROFILE_NOT_FOUND",
+          error: "No profile with given request id was found.",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+  )
+  .get("/api/placed-students", async (c) => {
+    const placedStudents = await getPlacedStudents();
+
+    return c.json({
+      placed: placedStudents,
+    });
+  })
+  .get("/api/placed-students/:id/profile", async (c) => {
+    const id = c.req.param("id");
+
+    if (!ObjectId.isValid(id)) {
+      return c.json(
+        {
+          code: "INVALID_REQUEST_ID",
+          error: "Request Id is not valid",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const fileData = await getPlacedStudentProfile(id);
+
+    if (fileData) {
+      return c.body(fileData.stream, 200, {
+        "Content-Type": fileData.metadata.contentType,
+      });
+    }
+
+    return c.json(
+      {
+        code: "PROFILE_NOT_FOUND",
+        error: "No profile with given request id was found.",
+      },
+      {
+        status: 404,
+      }
+    );
+  })
+  .post(
+    "/api/upcoming-companies",
+    userAuthorizedMiddleware,
+    adminAuthorizedMiddleware,
+    zValidator("json", AddCompanySchema, handleInvalidSchema),
+    async (c) => {
+      const { name, date, location, requirements, salary } =
+        c.req.valid("json");
+
+      try {
+        await insertUpcomingCompany({
+          name,
+          date,
+          location,
+          requirements,
+          salary,
+        });
+      } catch (e) {
+        console.error(e);
+
+        return c.json(
+          {
+            code: "INTERNAL_SERVER_ERROR",
+            error: "An unexpected error occurred. Try again later.",
+          },
+          {
+            status: 500,
+          }
+        );
+      }
+
+      return c.json({
+        success: true,
+        message: "An upcoming company was successfully added.",
+      });
+    }
+  )
+  .get("/api/upcoming-companies", async (c) => {
+    try {
+      const companies = await getUpcomingCompanies();
+
+      return c.json({
+        companies,
+      });
+    } catch (e) {
+      console.error(e);
+
+      return c.json(
+        {
+          code: "INTERNAL_SERVER_ERROR",
+          error: "An unexpected error occurred. Try again later.",
+        },
+        {
+          status: 500,
+        }
+      );
+    }
   });
 
 export default app;

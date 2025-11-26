@@ -46,12 +46,12 @@ export default function LoginDropdown({ initialAuthSession }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button className="size-9" variant="outline">
+        <Button className="size-9 text-black" variant="outline">
           <span className="sr-only">My Account</span>
           <UserRoundIcon />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="min-w-40" align="end">
+      <DropdownMenuContent className="min-w-40 bg-blue-50" align="end">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         {authSession ? (
           <>

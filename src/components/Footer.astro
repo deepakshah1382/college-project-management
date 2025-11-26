@@ -1,0 +1,105 @@
+---
+// @ts-nocheck
+
+import {
+  Facebook,
+  Instagram,
+  MailIcon,
+  PhoneIcon,
+  SendIcon,
+} from "lucide-react";
+---
+
+<footer class="p-5 pb-9 border-t bg-blue-950 text-white">
+  <div class="max-w-5xl mx-auto flex flex-col gap-6">
+    <a class="flex items-center gap-2" href="/">
+      <img
+        class="size-11 object-cover object-center rounded-md"
+        src="/favicon.png"
+        alt=" Group of Colleges"
+      />
+      <h1>
+        <span class="font-semibold text-lg">R.K. Desai</span>
+        <span class="block text-sm">Group of Colleges</span>
+      </h1>
+    </a>
+    <div class="grid grid-cols-2 gap-5 sm:grid-cols-3">
+      {
+        [
+          {
+            title: "College",
+            items: [
+              {
+                title: "About",
+                href: "/about",
+              },
+
+              {
+                title: "Upload Details",
+                href: "/upload-details",
+              },
+            ],
+          },
+          {
+            title: "Contact",
+            items: [
+              {
+                title: "Contact Form",
+                href: "/contact",
+                icon: SendIcon,
+              },
+              {
+                title: "email@college.com",
+                href: "mailto:email@college.com",
+                icon: MailIcon,
+              },
+              {
+                title: "+91 0000000000",
+                icon: PhoneIcon,
+              },
+            ],
+          },
+          {
+            title: "Social",
+            items: [
+              {
+                title: "Instagram",
+                href: "https://www.instagram.com/username",
+                icon: Instagram,
+              },
+              {
+                title: "Facebook",
+                href: "https://www.facebook.com/username",
+                icon: Facebook,
+              },
+            ],
+          },
+        ].map(({ title, items }) => (
+          <div>
+            <h2 class="font-medium text-[16px] mb-2">{title}</h2>
+            <ul class="flex flex-col gap-1">
+              {items.map(({ title, href, icon: Icon }) => (
+                <li>
+                  {href ? (
+                    <a
+                      class="text-[15px] opacity-90 hover:opacity-100 flex items-center gap-2"
+                      href={href}
+                    >
+                      {Icon && <Icon className="shrink-0" size={15} />}
+                      {title}
+                    </a>
+                  ) : (
+                    <div class="text-[15px] opacity-90 hover:opacity-100 flex items-center gap-2">
+                      {Icon && <Icon className="shrink-0" size={15} />}
+                      {title}
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</footer>

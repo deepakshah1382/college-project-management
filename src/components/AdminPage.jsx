@@ -1,11 +1,39 @@
 import { client } from "@/lib/auth-client/vanilla";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
+import RequestsTable from "./RequestsTable";
+import { Button } from "./ui/button";
+import AddUpcomingCompany from "./AddUpcomingCompany";
 
-function AdminPortal({ authSession }) {
-  return <>{authSession.user.name}</>;
+function AdminPanel({ authSession, initialPlacementRequests }) {
+  return (
+    <div className="flex flex-col gap-5">
+      <div>
+        <h2 className="text-lg font-medium">Placement Requests</h2>
+        <div className="text-muted-foreground text-sm">
+          List of all placement requests submitted by users
+        </div>
+      </div>
+
+      <RequestsTable requests={initialPlacementRequests} admin />
+
+      <div>
+        <h2 className="text-lg font-medium">Upcoming Companies</h2>
+        <div className="text-muted-foreground text-sm">
+          List of all upcoming companies
+        </div>
+      </div>
+
+      <AddUpcomingCompany>
+        <Button variant="outline">Open Dialog</Button>
+      </AddUpcomingCompany>
+    </div>
+  );
 }
 
-export default function AdminPage({ initialAuthSession }) {
+export default function AdminPage({
+  initialAuthSession,
+  initialPlacementRequests,
+}) {
   const [authSession, setAuthSession] = useState(initialAuthSession);
 
   useEffect(() => {
@@ -22,7 +50,10 @@ export default function AdminPage({ initialAuthSession }) {
 
   return authSession ? (
     authSession.user.role === "admin" ? (
-      <AdminPortal authSession={authSession} />
+      <AdminPanel
+        authSession={authSession}
+        initialPlacementRequests={initialPlacementRequests}
+      />
     ) : (
       <div>You are not an admin </div>
     )

@@ -66,14 +66,18 @@ export default function LoginForm({ initialAuthSession }) {
   return authSession ? (
     <LoggedInCard authSession={authSession} />
   ) : (
-    <Card>
+    <Card className="bg-blue-200">
       <CardHeader>
-        <CardTitle>Login to your account</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-blue-950">Login to your account</CardTitle>
+        <CardDescription className="text-black">
           Enter your email below to login to your account
         </CardDescription>
         <CardAction>
-          <Button variant="link" asChild>
+          <Button
+            variant="secondary"
+            className="bg-blue-950 text-white hover:bg-blue-700"
+            asChild
+          >
             <a href="/register">Register</a>
           </Button>
         </CardAction>
@@ -88,6 +92,7 @@ export default function LoginForm({ initialAuthSession }) {
             <div className="grid gap-2">
               <Label htmlFor={`${formIdPrefix}_email`}>Email</Label>
               <Input
+                className="bg-background"
                 id={`${formIdPrefix}_email`}
                 type="email"
                 name="email"
@@ -106,6 +111,7 @@ export default function LoginForm({ initialAuthSession }) {
                 </a>
               </div>
               <Input
+                className="bg-background"
                 id={`${formIdPrefix}_password`}
                 type="password"
                 name="password"

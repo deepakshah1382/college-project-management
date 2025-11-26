@@ -8,9 +8,17 @@ import { BadgeAlertIcon, BadgeCheckIcon, ShieldUserIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { Label } from "./ui/label";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
+import RequestsTable from "./RequestsTable";
+import Heading from "./Heading";
 
-export default function AccountProfile({ initialAuthSession }) {
+export default function AccountProfile({
+  initialAuthSession,
+  initialPlacementRequests,
+}) {
   const [authSession, setAuthSession] = useState(initialAuthSession);
+  const [placementRequests, setPlacementRequests] = useState(
+    initialPlacementRequests
+  );
   const [emailOTPState, setEmailOTPState] = useState("none");
   const [otp, setOtp] = useState("");
   const [emailVerificationState, setEmailVerificationState] = useState("none");
@@ -90,101 +98,116 @@ export default function AccountProfile({ initialAuthSession }) {
 
   return authSession ? (
     <div className="flex flex-col gap-5">
-      <div className="border p-3 rounded-md flex items-center gap-3">
-        <Avatar className="border size-15 rounded-md">
-          {authSession.user.image && (
-            <AvatarImage
-              className="rounded-md"
-              src={authSession.user.image}
-              alt={authSession.user.name}
-            />
-          )}
-          <AvatarFallback className="rounded-md text-xl">
-            {authSession.user.name.charAt(0).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-        <div className="overflow-hidden">
-          <div className="font-medium">{authSession.user.name}</div>
-          <div className="flex items-center gap-1.5 opacity-85 overflow-hidden">
-            <span className="text-sm truncate">{authSession.user.email}</span>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                {authSession.user.emailVerified ? (
-                  <BadgeCheckIcon className="shrink-0" size={16} />
-                ) : (
-                  <BadgeAlertIcon className="shrink-0" size={16} />
-                )}
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  {authSession.user.emailVerified
-                    ? "Email is verified"
-                    : "Email is not verified"}
-                </p>
-              </TooltipContent>
-            </Tooltip>
-            {authSession.user.role === "admin" && (
+      <div className="flex flex-col gap-5">
+        <Heading
+          title="My account"
+          description="View and manage your account"
+        />
+        <div className="border p-3 rounded-md flex items-center gap-3">
+          <Avatar className="border size-15 rounded-md">
+            {authSession.user.image && (
+              <AvatarImage
+                className="rounded-md"
+                src={authSession.user.image}
+                alt={authSession.user.name}
+              />
+            )}
+            <AvatarFallback className="rounded-md text-xl">
+              {authSession.user.name.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div className="overflow-hidden">
+            <div className="font-medium">{authSession.user.name}</div>
+            <div className="flex items-center gap-1.5 opacity-85 overflow-hidden">
+              <span className="text-sm truncate">{authSession.user.email}</span>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <ShieldUserIcon className="shrink-0" size={16} />
+                  {authSession.user.emailVerified ? (
+                    <BadgeCheckIcon className="shrink-0" size={16} />
+                  ) : (
+                    <BadgeAlertIcon className="shrink-0" size={16} />
+                  )}
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>You are an admin</p>
+                  <p>
+                    {authSession.user.emailVerified
+                      ? "Email is verified"
+                      : "Email is not verified"}
+                  </p>
                 </TooltipContent>
               </Tooltip>
-            )}
+              {authSession.user.role === "admin" && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <ShieldUserIcon className="shrink-0" size={16} />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>You are an admin</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-      {!authSession.user.emailVerified && (
-        <div className="border p-3 rounded-md flex flex-col gap-3">
-          {emailVerificationState === "verified" ? (
-            <>Your email is verified</>
-          ) : emailOTPState === "sent" ? (
-            <div className="flex flex-col gap-2">
-              <Label>One-Time Password</Label>
-              <InputOTP
-                maxLength={6}
-                value={otp}
-                onChange={(value) => {
-                  setOtp(value);
-                  if (value.length === 6) {
-                    onOTPComplete(value);
-                  }
-                }}
-                pattern={REGEXP_ONLY_DIGITS}
-              >
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
-                  <InputOTPSlot index={3} />
-                  <InputOTPSlot index={4} />
-                  <InputOTPSlot index={5} />
-                </InputOTPGroup>
-              </InputOTP>
-              <div className="text-sm opacity-85">
-                Please enter the one-time password sent to your email.
+        {!authSession.user.emailVerified && (
+          <div className="border p-3 rounded-md flex flex-col gap-3">
+            {emailVerificationState === "verified" ? (
+              <>Your email is verified</>
+            ) : emailOTPState === "sent" ? (
+              <div className="flex flex-col gap-2">
+                <Label>One-Time Password</Label>
+                <InputOTP
+                  maxLength={6}
+                  value={otp}
+                  onChange={(value) => {
+                    setOtp(value);
+                    if (value.length === 6) {
+                      onOTPComplete(value);
+                    }
+                  }}
+                  pattern={REGEXP_ONLY_DIGITS}
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+                <div className="text-sm opacity-85">
+                  Please enter the one-time password sent to your email.
+                </div>
               </div>
-            </div>
-          ) : (
-            <>
-              <p className="leading-normal">
-                Your email is not verified, click on Sent OTP to verify.
-              </p>
-              <Button
-                className="w-fit"
-                onClick={sendEmailOTP}
-                disabled={
-                  emailOTPState === "sending" || emailOTPState === "sent"
-                }
-              >
-                {emailOTPState === "sending" ? "Sending" : "Send OTP"}
-              </Button>
-            </>
-          )}
+            ) : (
+              <>
+                <p className="leading-normal">
+                  Your email is not verified, click on Sent OTP to verify.
+                </p>
+                <Button
+                  className="w-fit"
+                  onClick={sendEmailOTP}
+                  disabled={
+                    emailOTPState === "sending" || emailOTPState === "sent"
+                  }
+                >
+                  {emailOTPState === "sending" ? "Sending" : "Send OTP"}
+                </Button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+      <div className="flex flex-col gap-5">
+        <div>
+          <h2 className="text-lg font-medium">Placement Details Requests</h2>
+          <div className="text-muted-foreground text-sm">
+            List of your sumbitted placement requests
+          </div>
         </div>
-      )}
+        <RequestsTable requests={initialPlacementRequests} />
+      </div>
     </div>
   ) : (
     <div>

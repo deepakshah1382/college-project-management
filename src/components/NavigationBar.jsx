@@ -12,12 +12,15 @@ export default function NavigationBar({ menuItems }) {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="size-9 md:hidden">
+          <Button variant="outline" className="size-9 text-black md:hidden">
             <span className="sr-only">Menu</span>
             <MenuIcon />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="min-w-40 md:hidden" align="end">
+        <DropdownMenuContent
+          className="min-w-40 bg-blue-50 text-blue-950 md:hidden"
+          align="end"
+        >
           {menuItems.map(({ name, href, id }) => (
             <DropdownMenuItem key={id} asChild>
               <a href={href}>{name}</a>
@@ -28,7 +31,7 @@ export default function NavigationBar({ menuItems }) {
       <nav className="hidden md:flex items-center gap-4">
         {menuItems.map(({ name, href, id }) => (
           <a
-            className="text-foreground/75 transition-colors duration-300 ease-in-out text-sm hover:text-foreground/95"
+            className="opacity-80 transition-all duration-300 ease-in-out text-sm hover:opacity-100 hover:scale-104"
             key={id}
             href={href}
           >
