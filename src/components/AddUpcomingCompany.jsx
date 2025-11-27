@@ -39,6 +39,8 @@ export default function AddUpcomingCompany({ children }) {
     ];
     const requirements = formRef.current.elements.requirements.value;
 
+    setIsSubmitting(true);
+
     honoClient.api["upcoming-companies"]
       .$post({
         json: {
@@ -55,6 +57,7 @@ export default function AddUpcomingCompany({ children }) {
 
           const data = await res.json();
           if (res.ok && data.message) {
+            formRef.current.reset();
             toast.success(data.message);
           } else if ("error" in data) {
             toast.error(data.error);
@@ -164,7 +167,9 @@ export default function AddUpcomingCompany({ children }) {
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <Button type="submit">Add</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              Add
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

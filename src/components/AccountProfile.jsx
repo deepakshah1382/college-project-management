@@ -100,10 +100,11 @@ export default function AccountProfile({
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-5">
         <Heading
+          className="text-blue-950"
           title="My account"
           description="View and manage your account"
         />
-        <div className="border p-3 rounded-md flex items-center gap-3">
+        <div className="border p-3 rounded-md flex items-center gap-3 bg-blue-200">
           <Avatar className="border size-15 rounded-md">
             {authSession.user.image && (
               <AvatarImage
@@ -150,7 +151,7 @@ export default function AccountProfile({
           </div>
         </div>
         {!authSession.user.emailVerified && (
-          <div className="border p-3 rounded-md flex flex-col gap-3">
+          <div className="border p-3 rounded-md flex flex-col gap-3 bg-blue-200">
             {emailVerificationState === "verified" ? (
               <>Your email is verified</>
             ) : emailOTPState === "sent" ? (
@@ -168,21 +169,21 @@ export default function AccountProfile({
                   pattern={REGEXP_ONLY_DIGITS}
                 >
                   <InputOTPGroup>
-                    <InputOTPSlot index={0} />
-                    <InputOTPSlot index={1} />
-                    <InputOTPSlot index={2} />
-                    <InputOTPSlot index={3} />
-                    <InputOTPSlot index={4} />
-                    <InputOTPSlot index={5} />
+                    <InputOTPSlot className="bg-white" index={0} />
+                    <InputOTPSlot className="bg-white" index={1} />
+                    <InputOTPSlot className="bg-white" index={2} />
+                    <InputOTPSlot className="bg-white" index={3} />
+                    <InputOTPSlot className="bg-white" index={4} />
+                    <InputOTPSlot className="bg-white" index={5} />
                   </InputOTPGroup>
                 </InputOTP>
-                <div className="text-sm opacity-85">
+                <div className="text-sm opacity-85 ">
                   Please enter the one-time password sent to your email.
                 </div>
               </div>
             ) : (
               <>
-                <p className="leading-normal">
+                <p className="leading-normal text-black">
                   Your email is not verified, click on Sent OTP to verify.
                 </p>
                 <Button

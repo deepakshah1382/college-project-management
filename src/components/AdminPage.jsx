@@ -24,7 +24,7 @@ function AdminPanel({ authSession, initialPlacementRequests }) {
       </div>
 
       <AddUpcomingCompany>
-        <Button variant="outline">Open Dialog</Button>
+        <Button variant="outline">Add a company</Button>
       </AddUpcomingCompany>
     </div>
   );

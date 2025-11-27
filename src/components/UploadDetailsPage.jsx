@@ -2,8 +2,10 @@ import { client } from "@/lib/auth-client/vanilla";
 import { useEffect, useId, useRef, useState } from "react";
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "./ui/card";
@@ -11,8 +13,8 @@ import { Label } from "@radix-ui/react-label";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { client as honoClient } from "@/lib/hono-client";
-import { Button } from "./ui/button";
-import { ChevronDownIcon, SendIcon } from "lucide-react";
+import { Button, buttonVariants } from "./ui/button";
+import { ChevronDownIcon, LogInIcon, SendIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
   Select,
@@ -25,6 +27,7 @@ import {
 } from "./ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Calendar } from "./ui/calendar";
+import { cn } from "@/lib/utils";
 
 export default function UploadDetailsPage({ initialAuthSession }) {
   const [authSession, setAuthSession] = useState(initialAuthSession);
@@ -96,10 +99,12 @@ export default function UploadDetailsPage({ initialAuthSession }) {
   };
 
   return authSession ? (
-    <Card>
+    <Card className="bg-blue-200">
       <CardHeader>
-        <CardTitle>Upload Placement Details</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-blue-950">
+          Upload Placement Details
+        </CardTitle>
+        <CardDescription className="text-black">
           Got a placement? Show your placements details by filling this form.
         </CardDescription>
       </CardHeader>
@@ -108,6 +113,7 @@ export default function UploadDetailsPage({ initialAuthSession }) {
           <div className="grid gap-2">
             <Label htmlFor={`${formIdPrefix}_name`}>Name</Label>
             <Input
+              className="bg-white border-black"
               id={`${formIdPrefix}_name`}
               name="name"
               type="text"
@@ -119,6 +125,7 @@ export default function UploadDetailsPage({ initialAuthSession }) {
           <div className="grid gap-2">
             <Label htmlFor={`${formIdPrefix}_email`}>Email</Label>
             <Input
+              className="bg-white"
               id={`${formIdPrefix}_email`}
               name="email"
               type="email"
@@ -130,6 +137,7 @@ export default function UploadDetailsPage({ initialAuthSession }) {
           <div className="grid gap-2">
             <Label htmlFor={`${formIdPrefix}_profile`}>Profile Image</Label>
             <Input
+              className="bg-white"
               id={`${formIdPrefix}_profile`}
               name="profile"
               type="file"
@@ -140,12 +148,12 @@ export default function UploadDetailsPage({ initialAuthSession }) {
           <div className="grid gap-2">
             <Label>Stream</Label>
             <Select name="stream" required>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full bg-white">
                 <SelectValue placeholder="Select your stream" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-blue-900 text-white">
                 <SelectGroup>
-                  <SelectLabel>Streams</SelectLabel>
+                  <SelectLabel className="text-white">Streams</SelectLabel>
                   <SelectItem value="bca">BCA</SelectItem>
                   <SelectItem value="bsc">B.Sc</SelectItem>
                   <SelectItem value="msc">M.Sc</SelectItem>
@@ -168,7 +176,7 @@ export default function UploadDetailsPage({ initialAuthSession }) {
                 <Button
                   variant="outline"
                   id={`${formIdPrefix}_joinedAt`}
-                  className="w-full justify-between font-normal"
+                  className="w-full justify-between font-normal bg-white"
                 >
                   {joiningDate
                     ? joiningDate.toLocaleDateString()
@@ -195,6 +203,7 @@ export default function UploadDetailsPage({ initialAuthSession }) {
           <div className="grid gap-2">
             <Label htmlFor={`${formIdPrefix}_company`}>Company</Label>
             <Input
+              className="bg-white"
               id={`${formIdPrefix}_company`}
               name="company"
               type="text"
@@ -205,6 +214,7 @@ export default function UploadDetailsPage({ initialAuthSession }) {
           <div className="grid gap-2">
             <Label htmlFor={`${formIdPrefix}_designation`}>Designation</Label>
             <Input
+              className="bg-white"
               id={`${formIdPrefix}_designation`}
               name="designation"
               type="text"
@@ -217,6 +227,7 @@ export default function UploadDetailsPage({ initialAuthSession }) {
               Package (Rs. per annum)
             </Label>
             <Input
+              className="bg-white"
               id={`${formIdPrefix}_package`}
               name="package"
               type="number"
@@ -227,24 +238,41 @@ export default function UploadDetailsPage({ initialAuthSession }) {
           <div className="grid gap-2">
             <Label htmlFor={`${formIdPrefix}_summary`}>Summary</Label>
             <Textarea
+              className="bg-white"
               id={`${formIdPrefix}_summary`}
               name="summary"
               placeholder="Write details"
               required
             />
           </div>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" className="bg-blue-950" disabled={isSubmitting}>
             <SendIcon /> Request for Approval
           </Button>
         </form>
       </CardContent>
     </Card>
   ) : (
-    <div>
-      <a className="underline" href="/login">
-        Login
-      </a>{" "}
-      to upload your placement details.
-    </div>
+    <Card className="bg-blue-200">
+      <CardHeader>
+        <CardTitle className="text-blue-950">Login to continue</CardTitle>
+        <CardDescription className="text-black">
+          You need to login to perform this action.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        In order to upload placement details, you need to{" "}
+        <a className="underline" href="/login">
+          login
+        </a>{" "}
+        first.
+      </CardContent>
+      <CardFooter>
+        <CardAction>
+          <a className={cn(buttonVariants(), "bg-blue-950")} href="/login">
+            <LogInIcon /> Login
+          </a>
+        </CardAction>
+      </CardFooter>
+    </Card>
   );
 }

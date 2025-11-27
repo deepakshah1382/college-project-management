@@ -60,7 +60,7 @@ const UploadPlacementDetailsFormSchema = z
     company: z.string().trim().min(3).max(100),
     designation: z.string().trim().min(3).max(100),
     package: z.coerce.number().positive(),
-    summary: z.string().trim().min(100).max(1500),
+    summary: z.string().trim().min(50).max(1500),
     joinedAt: z.coerce
       .number()
       .positive()
