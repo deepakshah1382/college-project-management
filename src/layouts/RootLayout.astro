@@ -4,9 +4,9 @@ import { ClientRouter } from "astro:transitions";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import { Toaster } from "@/components/ui/sonner";
+import { cn } from "@/lib/utils";
 
 import "@/styles/global.css";
-import { cn } from "@/lib/utils";
 
 const { title, class: className, ...props } = Astro.props;
 ---

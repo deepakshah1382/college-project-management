@@ -35,7 +35,6 @@ import { client as honoClient } from "@/lib/hono-client";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Input } from "./ui/input";
-import { formatUTC, formatUTCDate } from "@/server/utils/formate-date";
 import {
   Dialog,
   DialogClose,
@@ -46,6 +45,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
+import FormattedDate from "./FormattedDate";
 
 export default function RequestsTable({
   requests: initialPlacementRequests,
@@ -142,17 +142,19 @@ export default function RequestsTable({
       },
     },
     {
-      header: "Joining date (UTC)",
-      accessorFn(request) {
-        const { joinedAt } = request;
-        return formatUTCDate(joinedAt);
+      header: "Joining date",
+      cell({ row }) {
+        const { original: request } = row;
+
+        return <FormattedDate date={request.joinedAt} format="date" />;
       },
     },
     {
-      header: "Created at (UTC)",
-      accessorFn(request) {
-        const { createdAt } = request;
-        return formatUTC(createdAt);
+      header: "Created at",
+      cell({ row }) {
+        const { original: request } = row;
+
+        return <FormattedDate date={request.createdAt} />;
       },
     },
     {

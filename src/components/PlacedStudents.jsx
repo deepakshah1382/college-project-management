@@ -1,5 +1,4 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatUTCDate } from "@/server/utils/formate-date";
 import {
   BriefcaseIcon,
   BuildingIcon,
@@ -8,7 +7,7 @@ import {
   MailIcon,
   UniversityIcon,
 } from "lucide-react";
-import { Separator } from "./ui/separator";
+import FormattedDate from "./FormattedDate";
 
 export default function PlacedStudents({ placedStudents }) {
   return (
@@ -63,7 +62,9 @@ export default function PlacedStudents({ placedStudents }) {
                   {
                     title: "Joining date",
                     icon: CalendarPlusIcon,
-                    value: `${formatUTCDate(placed.joinedAt)} UTC`,
+                    value: (
+                      <FormattedDate date={placed.joinedAt} format="date" />
+                    ),
                   },
                 ].map(({ title, icon: Icon, value }) => (
                   <div

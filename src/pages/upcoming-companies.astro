@@ -1,7 +1,7 @@
 ---
+import FormattedDate from "@/components/FormattedDate";
 import Heading from "@/components/Heading";
 import RootLayout from "@/layouts/RootLayout.astro";
-import { formatUTCDate } from "@/server/utils/formate-date";
 import { getUpcomingCompanies } from "@/server/utils/placement-details";
 import {
   BuildingIcon,
@@ -38,7 +38,7 @@ const upcomingCompanies = await getUpcomingCompanies();
               {
                 title: "Date",
                 icon: CalendarIcon,
-                value: `${formatUTCDate(date)} UTC`,
+                value: <FormattedDate date={date} format="date" />,
               },
               {
                 title: "Location",

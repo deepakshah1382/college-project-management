@@ -24,6 +24,27 @@ import {
   insertUpcomingCompany,
   patchPlacementRequestById,
 } from "./utils/placement-details";
+import {
+  getEvents,
+  getEventById,
+  insertEvent,
+  getEventImageByEventId,
+} from "./utils/events";
+
+const PastDateEpochSchema = z.coerce
+  .number()
+  .positive()
+  .refine((epoch) => new Date().getTime() >= epoch, {
+    error: "Date must be in past",
+  })
+  .transform((epoch) => new Date(epoch));
+
+const FutureDateEpochSchema = z.coerce
+  .number()
+  .positive()
+  .refine((epoch) => epoch > new Date().getTime(), {
+    error: "Date must be in future",
+  });
 
 const ContactFormJsonSchema = z
   .object({
@@ -61,13 +82,7 @@ const UploadPlacementDetailsFormSchema = z
     designation: z.string().trim().min(3).max(100),
     package: z.coerce.number().positive(),
     summary: z.string().trim().min(50).max(1500),
-    joinedAt: z.coerce
-      .number()
-      .positive()
-      .refine((epoch) => new Date().getTime() >= epoch, {
-        error: "Date is not valid as it is in future",
-      })
-      .transform((epoch) => new Date(epoch)),
+    joinedAt: PastDateEpochSchema,
   })
   .strict();
 
@@ -80,14 +95,8 @@ const PatchPlacementRequestStatusSchema = z
 const AddCompanySchema = z
   .object({
     name: z.string().min(3).max(100),
-    date: z
-      .number()
-      .positive()
-      .refine((epoch) => new Date().getTime() <= epoch, {
-        error: "Date is not valid as it is in past",
-      })
-      .transform((epoch) => new Date(epoch)),
-    location: z.string().min(3).max(1000),
+    date: FutureDateEpochSchema,
+    location: z.string().min(3).max(300),
     requirements: z.string().min(3).max(1000),
     salary: z
       .array(z.number().positive())
@@ -95,6 +104,17 @@ const AddCompanySchema = z
       .refine(([starting, ending]) => ending > starting, {
         error: "Ending salary must be greater than starting salary",
       }),
+  })
+  .strict();
+
+const AddEventSchema = z
+  .object({
+    name: z.string().min(3).max(100),
+    date: FutureDateEpochSchema,
+    place: z.string().min(3).max(300),
+    image: z.instanceof(File).refine((value) => value.size <= 5 * 1024 * 1024, {
+      error: "File size should not exceed 5MB",
+    }),
   })
   .strict();
 
@@ -478,6 +498,101 @@ const app = new Hono({
         }
       );
     }
+  })
+  .post(
+    "/api/events",
+    userAuthorizedMiddleware,
+    adminAuthorizedMiddleware,
+    zValidator("form", AddEventSchema, handleInvalidSchema),
+    async (c) => {
+      const { date, image, name, place } = c.req.valid("form");
+      const eventData = {
+        date,
+        image,
+        name,
+        place,
+      };
+
+      try {
+        await insertEvent(eventData);
+      } catch (e) {
+        console.error(e);
+
+        return c.json(
+          {
+            code: "INTERNAL_SERVER_ERROR",
+            error: "An unexpected error occurred. Try again later.",
+          },
+          {
+            status: 500,
+          }
+        );
+      }
+
+      return c.json({
+        success: true,
+        message: "Event is successfully added.",
+      });
+    }
+  )
+  .get("/api/events", async (c) => {
+    const events = await getEvents();
+
+    return c.json({
+      events,
+    });
+  })
+  .get("/api/events/:id", async (c) => {
+    const eventId = c.req.param("id");
+
+    if (!ObjectId.isValid(eventId)) {
+      return c.json(
+        {
+          code: "INVALID_REQUEST_ID",
+          error: "Request Id is not valid",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const event = await getEventById(eventId);
+
+    return c.json({ event });
+  })
+  .get("/api/events/:id/image", async (c) => {
+    const eventId = c.req.param("id");
+
+    if (!ObjectId.isValid(eventId)) {
+      return c.json(
+        {
+          code: "INVALID_REQUEST_ID",
+          error: "Request Id is not valid",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const fileData = await getEventImageByEventId(eventId);
+
+    if (fileData) {
+      return c.body(fileData.stream, 200, {
+        "Content-Type": fileData.metadata.contentType,
+      });
+    }
+
+    return c.json(
+      {
+        code: "Image_NOT_FOUND",
+        error: "No image with given event id was found.",
+      },
+      {
+        status: 404,
+      }
+    );
   });
 
 export default app;

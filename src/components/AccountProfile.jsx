@@ -17,7 +17,7 @@ export default function AccountProfile({
 }) {
   const [authSession, setAuthSession] = useState(initialAuthSession);
   const [placementRequests, setPlacementRequests] = useState(
-    initialPlacementRequests
+    initialPlacementRequests,
   );
   const [emailOTPState, setEmailOTPState] = useState("none");
   const [otp, setOtp] = useState("");

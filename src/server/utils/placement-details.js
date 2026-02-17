@@ -7,7 +7,6 @@ import {
   UPCOMING_COMPANY_COLLECTION,
 } from "../db";
 import { Readable } from "node:stream";
-import { number } from "zod";
 
 export async function insertPlacementRequest({
   name,
